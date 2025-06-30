@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", // Target modern ECMAScript
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"], // Include necessary libraries
+    "module": "ESNext", // Use ES modules
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler", // Or "node" if preferred, bundler is often better with Vite
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true, // Vite handles emission, this is for type checking
+    "jsx": "react-jsx", // Use new JSX transform
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true, // Enables compatibility with CommonJS modules
+
+    /* Path Aliases (optional, but good for larger projects) */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"] // Example: import something from 'src' as '@/...'
+    }
+  },
+  "include": ["src", "**/*.ts", "**/*.tsx"], // Files to include in compilation
+  "references": [{ "path": "./tsconfig.node.json" }] // For Vite config and other Node.js specific TS files
+}

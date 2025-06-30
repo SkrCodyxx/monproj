@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler", // Or "node"
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "target": "ES2022",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "outDir": "dist" // Not strictly necessary if tsx handles it, but good for consistency
+  },
+  "include": [
+    "vite.config.ts",
+    "server/**/*.ts", // Include server-side TypeScript files
+    "scripts/**/*.ts" // Include scripts if they are in TypeScript
+  ]
+}

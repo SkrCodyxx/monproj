@@ -1,0 +1,30 @@
+/* TailwindCSS Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global styles */
+body {
+  font-family: 'Inter', sans-serif; /* Default sans-serif font */
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #FFF8F0; /* A light, warm background, adjust as needed */
+  color: #333;
+}
+
+/* Example of using Playfair Display for headings */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Add any other global styles or custom base styles here */
+
+/* Example: Custom component style that could be applied with @apply */
+.btn-primary {
+  @apply py-2 px-4 bg-orange-500 text-white font-semibold rounded-lg shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-75;
+}
+
+.btn-secondary {
+  @apply py-2 px-4 bg-green-500 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75;
+}
