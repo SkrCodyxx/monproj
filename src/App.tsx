@@ -23,8 +23,19 @@ import ClientReservationsPage from './pages/client/ClientReservationsPage';
 // Import Layout Components
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
-import ClientLayout from './components/layout/ClientLayout'; // New Client Layout
-import ProtectedRoute from './components/auth/ProtectedRoute'; // New Protected Route
+import ClientLayout from './components/layout/ClientLayout';
+import AdminLayout from './components/layout/AdminLayout'; // New Admin Layout
+import ProtectedRoute from './components/auth/ProtectedRoute';
+
+// Admin Area Pages
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminUserManagementPage from './pages/admin/AdminUserManagementPage';
+import AdminMenuManagementPage from './pages/admin/AdminMenuManagementPage';
+import AdminOrderManagementPage from './pages/admin/AdminOrderManagementPage';
+import AdminReservationManagementPage from './pages/admin/AdminReservationManagementPage';
+import AdminGalleryManagementPage from './pages/admin/AdminGalleryManagementPage';
+import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+
 
 const App: React.FC = () => {
   return (
@@ -32,25 +43,50 @@ const App: React.FC = () => {
       <Toaster position="top-right" reverseOrder={false} />
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-grow"> {/* Removed container and padding, ClientLayout or pages will handle it */}
+        <main className="flex-grow"> {/* Container/padding handled by layouts/pages */}
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/menu" element={<MenuPage />} />
-          <Route path="/services" element={<ServicesPage />} />
-          <Route path="/gallery" element={<GalleryPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/booking" element={<BookingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/profile" element={<ProfilePage />} /> {/* Basic profile route */}
-          {/* Add routes for client dashboard sections if needed */}
-          {/* <Route path="/dashboard/client/orders" element={<ClientOrdersPage />} /> */}
-          {/* Add routes for admin sections later, likely with a nested/grouped Route setup */}
-          {/* <Route path="/admin/dashboard" element={<AdminDashboardPage />} /> */}
-          <Route path="*" element={<NotFoundPage />} /> {/* Catch-all for 404 */}
-        </Routes>
-      </Layout>
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/booking" element={<BookingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+
+            {/* Client Protected Routes */}
+            <Route element={<ProtectedRoute />}> {/* Protects all nested client routes */}
+              <Route path="/client" element={<ClientLayout />}>
+                <Route index element={<ClientDashboardPage />} />
+                <Route path="dashboard" element={<ClientDashboardPage />} />
+                <Route path="profile" element={<ClientProfilePage />} />
+                <Route path="orders" element={<ClientOrdersPage />} />
+                <Route path="reservations" element={<ClientReservationsPage />} />
+              </Route>
+            </Route>
+
+            {/* Admin Protected Routes */}
+            <Route element={<ProtectedRoute requiredRole="admin" />}> {/* Protects all nested admin routes for 'admin' role */}
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboardPage />} />
+                <Route path="dashboard" element={<AdminDashboardPage />} />
+                <Route path="users" element={<AdminUserManagementPage />} />
+                <Route path="menu" element={<AdminMenuManagementPage />} />
+                <Route path="orders" element={<AdminOrderManagementPage />} />
+                <Route path="reservations" element={<AdminReservationManagementPage />} />
+                <Route path="gallery" element={<AdminGalleryManagementPage />} />
+                <Route path="settings" element={<AdminSettingsPage />} />
+              </Route>
+            </Route>
+
+            <Route path="*" element={<NotFoundPage />} /> {/* Catch-all for 404 */}
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </Router>
   );
 };
