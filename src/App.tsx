@@ -11,14 +11,20 @@ import ContactPage from './pages/ContactPage';
 import BookingPage from './pages/BookingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
-import ProfilePage from './pages/ProfilePage'; // Assuming a client profile page
-// import ClientDashboardPage from './pages/ClientDashboardPage'; // If more complex than profile
-// import AdminDashboardPage from './pages/AdminDashboardPage'; // For admin section
+// ProfilePage is now part of client routes
 import NotFoundPage from './pages/NotFoundPage';
+
+// Client Area Pages
+import ClientDashboardPage from './pages/client/ClientDashboardPage';
+import ClientProfilePage from './pages/client/ProfilePage'; // Renamed import for clarity
+import ClientOrdersPage from './pages/client/ClientOrdersPage';
+import ClientReservationsPage from './pages/client/ClientReservationsPage';
 
 // Import Layout Components
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
+import ClientLayout from './components/layout/ClientLayout'; // New Client Layout
+import ProtectedRoute from './components/auth/ProtectedRoute'; // New Protected Route
 
 const App: React.FC = () => {
   return (
@@ -26,8 +32,9 @@ const App: React.FC = () => {
       <Toaster position="top-right" reverseOrder={false} />
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-grow container mx-auto px-4 py-8"> {/* Added some basic padding and container */}
+        <main className="flex-grow"> {/* Removed container and padding, ClientLayout or pages will handle it */}
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/menu" element={<MenuPage />} />
           <Route path="/services" element={<ServicesPage />} />

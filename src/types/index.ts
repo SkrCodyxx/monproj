@@ -6,6 +6,7 @@ export interface User {
   role: 'client' | 'admin'; // Example roles
   firstName?: string;
   lastName?: string;
+  phone?: string; // Added phone field
 }
 
 export interface MenuItem {
