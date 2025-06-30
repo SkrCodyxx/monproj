@@ -1,31 +1,22 @@
-// Placeholder for Authentication API routes (Express)
 import express from 'express';
-// import { register, login, logout, forgotPassword, resetPassword } from '../controllers/authController'; // Define controllers later
-// import { protect } from '../middleware/authMiddleware'; // Define middleware later
+import { register, login } from '../controllers/authController';
+// import { protect } from '../middleware/authMiddleware'; // To protect routes like /me
 
 const router = express.Router();
 
-// Mock route handlers for now
-router.post('/register', (req, res) => {
-  res.status(201).json({ message: 'User registration placeholder', data: req.body });
-});
+router.post('/register', register);
+router.post('/login', login);
 
-router.post('/login', (req, res) => {
-  res.status(200).json({ message: 'User login placeholder', token: 'mock-jwt-token', data: req.body });
-});
-
+// Placeholder for logout - client-side JWT removal is typical for stateless auth
+// Server-side logout might involve token blocklisting if needed.
 router.post('/logout', (req, res) => {
-  res.status(200).json({ message: 'User logout placeholder' });
+  res.status(200).json({ message: 'Logout successful (client should clear token)' });
 });
 
-// router.post('/forgot-password', forgotPassword);
-// router.put('/reset-password/:resetToken', resetPassword);
+// Example: Get current user (protected route)
+// router.get('/me', protect, getMe); // Assuming getMe controller and protect middleware
 
-// Example of a protected route (once middleware is set up)
-// router.get('/me', protect, (req, res) => {
-//   // @ts-ignore // req.user would be set by the protect middleware
-//   res.status(200).json({ message: 'Current user data placeholder', user: req.user });
-// });
-
+// router.post('/forgot-password', forgotPasswordController);
+// router.post('/reset-password', resetPasswordController);
 
 export default router;
