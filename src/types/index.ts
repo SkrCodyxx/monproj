@@ -68,14 +68,22 @@ export interface OrderItem {
   // No separate created_at/updated_at needed if managed by order's timestamps or not critical
 }
 
+export type ReservationStatus = 'pending' | 'confirmed' | 'cancelled';
+
 export interface Reservation {
-  id: string;
-  userId: string;
-  eventType: string;
-  date: Date;
-  numberOfGuests: number;
-  status: 'pending' | 'confirmed' | 'cancelled';
+  id: string; // or number
+  user_id?: string | null; // or number
+  event_type: string;
+  event_date: string; // ISO datetime string
+  number_of_guests: number;
+  status: ReservationStatus;
+  customer_name: string;
+  customer_email: string;
+  customer_phone?: string;
   notes?: string;
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+  user?: Pick<User, 'email' | 'firstName' | 'lastName'>; // Optional: for frontend display if joined
 }
 
 // Add more types as defined in the "Cahier des Charges"
