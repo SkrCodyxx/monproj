@@ -106,5 +106,55 @@ export interface GalleryImage {
   updated_at?: string; // ISO date string
 }
 
+// --- App Settings ---
+export interface CompanyInformation {
+  name?: string;
+  addressStreet?: string;
+  addressCity?: string;
+  addressPostalCode?: string;
+  addressCountry?: string;
+  phone?: string;
+  email?: string;
+  logoUrl?: string;
+}
+
+export interface TaxSettings {
+  defaultTaxRate?: number; // e.g., 0.15 for 15%
+  currencySymbol?: string; // e.g., "CAD", "$", "€"
+}
+
+export interface OpeningHours {
+  monday?: string;    // e.g., "9:00-17:00" or "Fermé"
+  tuesday?: string;
+  wednesday?: string;
+  thursday?: string;
+  friday?: string;
+  saturday?: string;
+  sunday?: string;
+}
+
+export interface SocialMediaLinks {
+  facebook?: string;
+  instagram?: string;
+  twitter?: string;
+  linkedin?: string;
+}
+
+export interface LegalPages {
+  privacyPolicyUrl?: string;
+  termsOfServiceUrl?: string;
+}
+
+export interface AppSettings {
+  companyInfo?: CompanyInformation;
+  taxInfo?: TaxSettings;
+  openingHours?: OpeningHours; // Could be stored as a JSON string for 'openingHours' key
+  socialMedia?: SocialMediaLinks; // Could be stored as a JSON string for 'socialMedia' key
+  legalPages?: LegalPages; // Could be stored as a JSON string for 'legalPages' key
+  // Add other specific top-level settings if any
+  // For example, siteTitle, siteDescription if they are simple strings
+}
+
+
 // Add more types as defined in the "Cahier des Charges"
-// e.g., Category, GalleryImage, CompanySettings, etc.
+// e.g., CompanySettings (which is now AppSettings)
