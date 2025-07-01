@@ -86,5 +86,25 @@ export interface Reservation {
   user?: Pick<User, 'email' | 'firstName' | 'lastName'>; // Optional: for frontend display if joined
 }
 
+export interface GalleryAlbum {
+  id: string; // or number
+  name: string;
+  description?: string;
+  cover_image_url?: string;
+  created_at?: string; // ISO date string
+  updated_at?: string; // ISO date string
+  image_count?: number; // Optional: for frontend display if joined/calculated
+}
+
+export interface GalleryImage {
+  id: string; // or number
+  album_id: string; // or number
+  image_url: string;
+  caption?: string;
+  sort_order?: number;
+  created_at?: string; // ISO date string
+  updated_at?: string; // ISO date string
+}
+
 // Add more types as defined in the "Cahier des Charges"
 // e.g., Category, GalleryImage, CompanySettings, etc.
