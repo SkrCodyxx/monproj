@@ -78,7 +78,11 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
 // --- End Modal Component ---
 
 type AlbumFormData = Omit<GalleryAlbum, 'id' | 'created_at' | 'updated_at' | 'image_count'>;
-type ImageFormData = Omit<GalleryImage, 'id' | 'album_id' | 'created_at' | 'updated_at'>;
+interface ImageFormData extends Omit<GalleryImage, 'id' | 'album_id' | 'created_at' | 'updated_at'> {
+  imageFile?: File | null; // For file upload
+}
+type UploadMode = 'file' | 'url';
+
 
 const AdminGalleryManagementPage: React.FC = () => {
   const [albums, setAlbums] = useState<GalleryAlbum[]>([]);
@@ -95,7 +99,10 @@ const AdminGalleryManagementPage: React.FC = () => {
 
   const [showImageModal, setShowImageModal] = useState(false);
   const [editingImage, setEditingImage] = useState<GalleryImage | null>(null);
-  const [imageFormData, setImageFormData] = useState<ImageFormData>({ image_url: '', caption: '', sort_order: 0 });
+  const [imageFormData, setImageFormData] = useState<ImageFormData>({ image_url: '', caption: '', sort_order: 0, imageFile: null });
+  const [uploadMode, setUploadMode] = useState<UploadMode>('file'); // Default to file upload
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+
 
   const fetchAlbums = useCallback(async () => {
     setIsLoadingAlbums(true);
@@ -159,21 +166,103 @@ const AdminGalleryManagementPage: React.FC = () => {
 
   // Image CRUD
   const handleOpenImageModal = (image: GalleryImage | null = null) => {
-    if (!selectedAlbum) return; // Should not happen if button is only enabled when album selected
+    if (!selectedAlbum && !image) return; // Need an album context if adding new
     setEditingImage(image);
-    setImageFormData(image ? { image_url: image.image_url, caption: image.caption, sort_order: image.sort_order } : { image_url: '', caption: '', sort_order: 0 });
+    setImagePreviewUrl(null); // Reset preview
+
+    if (image) { // Editing existing image
+      setImageFormData({
+        image_url: image.image_url,
+        caption: image.caption,
+        sort_order: image.sort_order || 0,
+        imageFile: null
+      });
+      setUploadMode('url'); // When editing, default to showing/editing the URL. File upload for replacement is a "new" action.
+      setImagePreviewUrl(image.image_url);
+    } else { // Adding new image
+      setImageFormData({ image_url: '', caption: '', sort_order: 0, imageFile: null });
+      setUploadMode('file'); // Default to file upload for new images
+    }
     setShowImageModal(true);
   };
-  const handleImageFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+
+  const handleImageFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    // @ts-ignore
-    setImageFormData({ ...imageFormData, [name]: type === 'number' ? parseInt(value) : value });
+
+    if (type === 'file') {
+      const fileInput = e.target as HTMLInputElement;
+      const file = fileInput.files?.[0] || null;
+      setImageFormData(prev => ({ ...prev, imageFile: file, image_url: file ? '' : prev.image_url })); // Clear URL if file chosen
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => { setImagePreviewUrl(reader.result as string); };
+        reader.readAsDataURL(file);
+      } else {
+        setImagePreviewUrl(imageFormData.image_url || null); // Revert to URL preview if file removed
+      }
+    } else if (name === "uploadMode") {
+        setUploadMode(value as UploadMode);
+        // If switching to URL mode and there was a file, clear file. If switching to file and there was URL, clear URL.
+        if (value === 'url') setImageFormData(prev => ({ ...prev, imageFile: null }));
+        else setImageFormData(prev => ({ ...prev, image_url: '' }));
+        setImagePreviewUrl(null); // Reset preview on mode switch
+    } else {
+      setImageFormData(prev => ({
+        ...prev,
+        [name]: type === 'number' ? parseInt(value) : value,
+        // If URL is typed, clear selected file (and vice versa logic handled by uploadMode switch)
+        ...(name === 'image_url' && value && { imageFile: null })
+      }));
+      if (name === 'image_url' && uploadMode === 'url') {
+         setImagePreviewUrl(value || null);
+      }
+    }
   };
+
   const handleSaveImage = async () => {
-    if (!selectedAlbum || !imageFormData.image_url) { toast.error("URL de l'image requise."); return; }
-    const apiCall = editingImage
-      ? apiClient.put(`/gallery-images/${editingImage.id}`, imageFormData)
-      : apiClient.post(`/gallery-albums/${selectedAlbum.id}/images`, imageFormData);
+    if (!selectedAlbum) { toast.error("Aucun album sélectionné pour ajouter l'image."); return; }
+
+    let payload: FormData | ImageFormData;
+    let apiCallPromise;
+
+    if (editingImage) { // Editing existing image: only caption and sort_order
+      payload = {
+        caption: imageFormData.caption || null,
+        sort_order: imageFormData.sort_order || 0,
+      };
+      apiCallPromise = apiClient.put(`/gallery-images/${editingImage.id}`, payload);
+    } else { // Adding a new image
+      if (uploadMode === 'file' && imageFormData.imageFile) {
+        const formData = new FormData();
+        formData.append('imageFile', imageFormData.imageFile);
+        if (imageFormData.caption) formData.append('caption', imageFormData.caption);
+        formData.append('sort_order', (imageFormData.sort_order || 0).toString());
+        payload = formData;
+      } else if (uploadMode === 'url' && imageFormData.image_url) {
+        payload = {
+          image_url: imageFormData.image_url,
+          caption: imageFormData.caption || null,
+          sort_order: imageFormData.sort_order || 0,
+        };
+      } else {
+        toast.error("Veuillez téléverser un fichier ou fournir une URL d'image.");
+        return;
+      }
+      apiCallPromise = apiClient.post(`/gallery-albums/${selectedAlbum.id}/images`, payload);
+    }
+
+    const toastId = toast.loading(editingImage ? 'Mise à jour de l\'image...' : 'Ajout de l\'image...');
+    try {
+      await apiCallPromise;
+      toast.success(`Image ${editingImage ? 'mise à jour' : 'ajoutée'}!`, {id: toastId});
+      setShowImageModal(false);
+      fetchImagesForAlbum(selectedAlbum.id, editingImage ? imagePagination.page : 1); // Go to page 1 for new image
+      fetchAlbums(); // Refresh album image count
+    } catch (error) {
+      toast.error('Erreur lors de la sauvegarde de l\'image.', {id: toastId});
+    }
+  };
+  const handleDeleteImage = async (imageId: string) => {
     const toastId = toast.loading(editingImage ? 'Mise à jour...' : 'Ajout...');
     try {
       await apiCall;
@@ -290,12 +379,60 @@ const AdminGalleryManagementPage: React.FC = () => {
       </Modal>
 
       {/* Image Modal */}
-      <Modal isOpen={showImageModal} onClose={() => setShowImageModal(false)} title={editingImage ? "Modifier Image" : "Ajouter Image"}>
-         <form onSubmit={e => {e.preventDefault(); handleSaveImage();}} className="space-y-3">
-          <div><label htmlFor="imageUrl" className="block text-sm font-medium">URL de l'Image</label><input type="url" name="image_url" id="imageUrl" value={imageFormData.image_url} onChange={handleImageFormChange} required className="mt-1 w-full input-style"/></div>
-          <div><label htmlFor="imageCaption" className="block text-sm font-medium">Légende <span className="text-xs">(Optionnel)</span></label><textarea name="caption" id="imageCaption" value={imageFormData.caption || ''} onChange={handleImageFormChange} rows={2} className="mt-1 w-full input-style"></textarea></div>
-          <div><label htmlFor="imageSortOrder" className="block text-sm font-medium">Ordre de Tri <span className="text-xs">(Optionnel)</span></label><input type="number" name="sort_order" id="imageSortOrder" value={imageFormData.sort_order || 0} onChange={handleImageFormChange} className="mt-1 w-full input-style"/></div>
-          <div className="flex justify-end space-x-2 pt-2"><button type="button" onClick={() => setShowImageModal(false)} className="btn-secondary-outline">Annuler</button><button type="submit" className="btn-primary">Enregistrer Image</button></div>
+      <Modal isOpen={showImageModal} onClose={() => {setShowImageModal(false); setImagePreviewUrl(null);}} title={editingImage ? "Modifier les détails de l'image" : "Ajouter une Image"}>
+         <form onSubmit={e => {e.preventDefault(); handleSaveImage();}} className="space-y-4">
+          {!editingImage && ( // Show upload mode toggle only when adding new image
+            <div className="mb-3">
+              <label className="block text-sm font-medium mb-1">Méthode d'ajout:</label>
+              <div className="flex space-x-4">
+                {(['file', 'url'] as UploadMode[]).map(mode => (
+                  <label key={mode} className="flex items-center">
+                    <input type="radio" name="uploadMode" value={mode} checked={uploadMode === mode} onChange={handleImageFormChange} className="form-radio h-4 w-4 text-green-600"/>
+                    <span className="ml-2 text-sm">{mode === 'file' ? 'Téléverser Fichier' : 'Lien URL'}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {uploadMode === 'file' && !editingImage && (
+            <div>
+              <label htmlFor="imageFile" className="block text-sm font-medium">Fichier Image</label>
+              <input type="file" name="imageFile" id="imageFile" accept="image/*" onChange={handleImageFormChange} className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"/>
+            </div>
+          )}
+          {(uploadMode === 'url' || editingImage) && ( // Show URL input if mode is 'url' OR if editing (even if mode was file, edit shows current URL)
+            <div>
+              <label htmlFor="imageUrl" className="block text-sm font-medium">URL de l'Image</label>
+              <input type="url" name="image_url" id="imageUrl" placeholder="https://example.com/image.jpg"
+                     value={imageFormData.image_url || ''}
+                     onChange={handleImageFormChange}
+                     required={uploadMode === 'url' && !editingImage} // Required only if URL mode and adding new
+                     disabled={editingImage !== null} // Disable URL editing for existing images to simplify
+                     className={`mt-1 w-full input-style ${editingImage ? 'bg-gray-100 cursor-not-allowed' : ''}`}/>
+                {editingImage && <p className="text-xs text-gray-500 mt-1">Pour changer l'image, veuillez supprimer celle-ci et en ajouter une nouvelle.</p>}
+            </div>
+          )}
+
+          {imagePreviewUrl && (
+            <div className="mt-2">
+              <p className="text-sm font-medium text-gray-700">Aperçu:</p>
+              <img src={imagePreviewUrl} alt="Aperçu" className="mt-1 max-h-40 w-auto rounded border"/>
+            </div>
+          )}
+
+          <div>
+            <label htmlFor="imageCaption" className="block text-sm font-medium">Légende <span className="text-xs text-gray-500">(Optionnel)</span></label>
+            <textarea name="caption" id="imageCaption" value={imageFormData.caption || ''} onChange={handleImageFormChange} rows={2} className="mt-1 w-full input-style"></textarea>
+          </div>
+          <div>
+            <label htmlFor="imageSortOrder" className="block text-sm font-medium">Ordre de Tri <span className="text-xs text-gray-500">(Optionnel)</span></label>
+            <input type="number" name="sort_order" id="imageSortOrder" value={imageFormData.sort_order || 0} onChange={handleImageFormChange} className="mt-1 w-full input-style"/>
+          </div>
+          <div className="flex justify-end space-x-2 pt-3">
+            <button type="button" onClick={() => {setShowImageModal(false); setImagePreviewUrl(null);}} className="btn-secondary-outline">Annuler</button>
+            <button type="submit" className="btn-primary">Enregistrer Image</button>
+          </div>
         </form>
       </Modal>
       <style jsx>{`

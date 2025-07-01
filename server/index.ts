@@ -27,10 +27,20 @@ dotenv.config();
 const app: Express = express();
 const PORT = process.env.PORT || 5001; // Backend server port
 
+import path from 'path'; // Ensure path is imported
+
 // Middleware
 app.use(cors()); // Enable CORS for all routes (configure origins in production)
 app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+
+// Serve static files from 'public' directory (e.g., for placeholder logo, and later, uploads)
+// __dirname here refers to the directory of the current module (server/index.ts)
+// We need to go up one level to reach the project root where 'public' is.
+app.use(express.static(path.join(__dirname, '../public')));
+// Serve uploaded gallery images specifically (if not covered by the above general public)
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+
 
 // --- API Routes ---
 app.get('/api', (req: Request, res: Response) => {

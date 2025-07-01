@@ -8,8 +8,9 @@ const ALBUMS_TABLE = `${process.env.DB_SCHEMA || 'main'}.gallery_albums`;
 
 
 // Zod schema for adding an image to an album
+// image_url becomes optional if a file is uploaded. Controller will prioritize file.
 const addImageSchema = z.object({
-  image_url: z.string().url("URL de l'image invalide."),
+  image_url: z.string().url("URL de l'image invalide.").optional().nullable().or(z.literal('')),
   caption: z.string().optional().nullable(),
   sort_order: z.number().int().optional().default(0),
 });
@@ -66,7 +67,19 @@ export const addImageToAlbum = async (req: Request, res: Response, next: NextFun
       return res.status(400).json({ message: "Validation errors", errors: validationResult.error.flatten().fieldErrors });
     }
 
-    const { image_url, caption, sort_order } = validationResult.data;
+    let { image_url, caption, sort_order } = validationResult.data;
+
+    // Prioritize file upload over direct URL if a file is present
+    if (req.file) {
+      image_url = `/uploads/gallery/${req.file.filename}`;
+    } else if (!image_url) {
+      // If no file and no image_url, it's an error (unless schema makes image_url truly optional without file)
+      // The current schema allows image_url to be empty/null, so this case is fine if that's intended.
+      // However, an image entry without a URL or file doesn't make sense.
+      // Let's enforce that either a file is uploaded or a URL is provided.
+      return res.status(400).json({ message: "Aucun fichier téléversé ni URL d'image fournie." });
+    }
+
 
     // Check if album exists
     const albumExists = await db(ALBUMS_TABLE).where({ id: albumId }).first();
