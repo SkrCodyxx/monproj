@@ -10,15 +10,27 @@ export interface User {
   isActive?: boolean; // Added for user activation status
 }
 
-export interface MenuItem {
-  id: string;
+// Renaming MenuItem to Dish for consistency with backend table name plan
+export interface Dish {
+  id: string; // Or number if using integer IDs from DB directly
+  category_id: string; // Or number
   name: string;
   description: string;
-  price: number;
-  category: string;
-  imageUrl?: string;
-  allergens?: string[];
-  available: boolean;
+  price: number; // Representing price, could be float or integer (cents)
+  image_url?: string;
+  allergens?: string; // Simple text for now
+  is_available: boolean;
+  category_name?: string; // Optional: for frontend display, if joined
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Category {
+  id: string; // Or number
+  name: string;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Order {

@@ -12,6 +12,8 @@ import reservationRoutes from './routes/reservationRoutes';
 import userRoutes from './routes/userRoutes';
 import galleryRoutes from './routes/galleryRoutes';
 import settingsRoutes from './routes/settingsRoutes';
+import categoryRoutes from './routes/categoryRoutes';
+import dishRoutes from './routes/dishRoutes'; // Import dish routes
 
 // Import middleware
 import errorHandler, { NotFoundError } from './middleware/errorHandler';
@@ -37,9 +39,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/reservations', reservationRoutes);
-app.use('/api/users', userRoutes); // Should be protected by admin auth
+app.use('/api/users', userRoutes);
 app.use('/api/gallery', galleryRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/dishes', dishRoutes); // Use dish routes
 
 // --- Database Connection (Example with SQLite, actual connection will be more involved) ---
 // import sqlite3 from 'sqlite3';
