@@ -2,30 +2,39 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path'; // Import path module
 
-// https://vitejs.dev/config/
+/// <reference types="vitest" />
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path'; // Import path module
+
+/// <reference types="vitest" />
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'), // Setup path alias for '@/*'
+      '@': path.resolve(__dirname, './src'),
     },
   },
   server: {
-    port: 3000, // Frontend dev server port
+    port: 3000,
     proxy: {
-      // Proxy API requests to the backend server
       '/api': {
-        target: 'http://localhost:5001', // Your backend server address
+        target: 'http://localhost:5001',
         changeOrigin: true,
-        // secure: false, // Uncomment if your backend is not using HTTPS in dev
-        // rewrite: (path) => path.replace(/^\/api/, ''), // If your backend doesn't expect /api prefix
       },
     },
   },
   build: {
-    outDir: 'dist/client', // Output directory for frontend build
-    rollupOptions: {
-      // Additional Rollup options if needed
-    },
+    outDir: 'dist/client',
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.ts',
+    css: false,
   },
 });
