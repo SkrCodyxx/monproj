@@ -33,20 +33,39 @@ export interface Category {
   updated_at?: string;
 }
 
+export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
+
+export interface Address { // Reusable Address type
+    street: string;
+    city: string;
+    postalCode: string;
+    country: string;
+}
 export interface Order {
-  id: string;
-  userId: string;
-  items: OrderItem[];
-  totalAmount: number;
-  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'delivered' | 'cancelled';
-  createdAt: Date;
-  updatedAt: Date;
+  id: string; // or number
+  user_id?: string | null; // or number
+  total_amount: number;
+  status: OrderStatus;
+  customer_name: string;
+  customer_email: string;
+  customer_phone?: string;
+  shipping_address?: string | Address; // Store as JSON string in DB, parse to Address object in app
+  billing_address?: string | Address;
+  notes?: string;
+  items?: OrderItem[]; // Typically fetched separately or as a join for order details
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+  user?: Pick<User, 'email' | 'firstName' | 'lastName'>; // Optional: for frontend display if joined
 }
 
 export interface OrderItem {
-  menuItemId: string;
+  id: string; // or number
+  order_id: string; // or number
+  dish_id: string; // or number
+  dish_name: string; // Denormalized
   quantity: number;
-  pricePerItem: number;
+  price_per_item: number;
+  // No separate created_at/updated_at needed if managed by order's timestamps or not critical
 }
 
 export interface Reservation {
