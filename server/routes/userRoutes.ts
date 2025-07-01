@@ -5,9 +5,16 @@ import { protect, authorize } from '../middleware/authMiddleware'; // Assuming a
 const router = express.Router();
 
 // Routes for the authenticated user to manage their own profile
-router.get('/profile/me', protect, getMyProfile); // Get current user's profile
-router.put('/profile/me', protect, updateUserProfile); // Update current user's profile info
-router.put('/profile/me/password', protect, updateUserPassword); // Change current user's password
+router.get('/profile/me', protect, getMyProfile);
+router.put('/profile/me', protect, updateUserProfile);
+router.put('/profile/me/password', protect, updateUserPassword);
+
+// --- Admin User Management Routes ---
+// These routes should be protected by 'protect' and 'authorize(['admin'])'
+router.get('/', protect, authorize(['admin']), getAllUsers); // Get all users (admin)
+router.get('/:id', protect, authorize(['admin']), getUserById); // Get a specific user by ID (admin)
+router.put('/:id/role', protect, authorize(['admin']), updateUserRoleById); // Update user's role (admin)
+router.patch('/:id/activation', protect, authorize(['admin']), toggleUserActivationById); // Activate/deactivate user (admin)
 
 
 // Admin-only routes for managing all users (placeholders from previous setup)
